@@ -1,34 +1,49 @@
 {
   "project_info": {
-    "project_number": "123456789012",
-    "project_id": "movies-app-temp",
-    "storage_bucket": "movies-app-temp.appspot.com"
+    "project_number": "985327238937",
+    "project_id": "movies-f56b7",
+    "storage_bucket": "movies-f56b7.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:123456789012:android:abcdefghijklmnop",
+        "mobilesdk_app_id": "1:985327238937:android:de1b5c74ebee7507b20f88",
         "android_client_info": {
           "package_name": "com.example.movies"
         }
       },
       "oauth_client": [
         {
-          "client_id": "123456789012-abcdefghijklmnopqrstuvwxyz.apps.googleusercontent.com",
+          "client_id": "985327238937-qve42i9l716vg0jb2ugpbkej40dv0vut.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.movies",
+            "certificate_hash": "a39466b6a6ada607c72ea568037d9e905335815b"
+          }
+        },
+        {
+          "client_id": "985327238937-n1i6nl948m7oke0g6gs02vta8eeeam9r.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyDummy_API_Key_Replace_With_Real_One"
+          "current_key": "AIzaSyDQ5dbPrjW1WMsWdaDKTC-b2SQf0KOnerA"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "123456789012-abcdefghijklmnopqrstuvwxyz.apps.googleusercontent.com",
+              "client_id": "985327238937-n1i6nl948m7oke0g6gs02vta8eeeam9r.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "985327238937-qsao9p0gg75qjnh3ta60bn0v0mo7s4ht.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.movies"
+              }
             }
           ]
         }

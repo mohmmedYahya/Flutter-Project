@@ -86,6 +86,28 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  Future<void> _signInWithGoogle() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await _authService.signInWithGoogle();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -170,6 +192,36 @@ class _LoginScreenState extends State<LoginScreen> {
               TextButton(
                 onPressed: _forgotPassword,
                 child: const Text('Forgot Password?'),
+              ),
+              const SizedBox(height: 24),
+              const Row(
+                children: [
+                  Expanded(child: Divider()),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Text('OR'),
+                  ),
+                  Expanded(child: Divider()),
+                ],
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: OutlinedButton.icon(
+                  onPressed: _isLoading ? null : _signInWithGoogle,
+                  icon: Image.asset(
+                    'assets/images/google_logo.png',
+                    height: 24,
+                    width: 24,
+                    errorBuilder: (context, error, stackTrace) =>
+                        const Icon(Icons.login, size: 24),
+                  ),
+                  label: const Text('Continue with Google'),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Colors.grey),
+                  ),
+                ),
               ),
               const SizedBox(height: 32),
               Row(
