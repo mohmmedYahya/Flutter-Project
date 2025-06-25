@@ -67,6 +67,7 @@ class _LoginScreenState extends State<LoginScreen>
 
       // Show success message - navigation will happen automatically via AuthWrapper
       if (mounted) {
+        print('Login successful - user should be authenticated now');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('Login successful! Welcome back!'),
@@ -75,9 +76,12 @@ class _LoginScreenState extends State<LoginScreen>
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
-            duration: const Duration(seconds: 2),
+            duration: const Duration(seconds: 1),
           ),
         );
+
+        // Small delay to ensure AuthWrapper detects the state change
+        await Future.delayed(const Duration(milliseconds: 100));
       }
     } catch (e) {
       if (mounted) {
@@ -158,6 +162,7 @@ class _LoginScreenState extends State<LoginScreen>
 
       // Only show success message if user didn't cancel the sign-in
       if (result != null && mounted) {
+        print('Google sign-in successful - user should be authenticated now');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('Google sign-in successful! Welcome!'),
@@ -166,9 +171,12 @@ class _LoginScreenState extends State<LoginScreen>
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
-            duration: const Duration(seconds: 2),
+            duration: const Duration(seconds: 1),
           ),
         );
+
+        // Small delay to ensure AuthWrapper detects the state change
+        await Future.delayed(const Duration(milliseconds: 100));
       }
     } catch (e) {
       if (mounted) {
