@@ -509,7 +509,7 @@ class _LoginScreenState extends State<LoginScreen>
                         onPressed: _isLoading ? null : _signIn,
                         isLoading: _isLoading,
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 15),
 
                       // Forgot Password
                       TextButton(
@@ -523,7 +523,7 @@ class _LoginScreenState extends State<LoginScreen>
                         ),
                         child: const Text('Forgot Password?'),
                       ),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 15),
 
                       // Divider
                       Row(
@@ -555,7 +555,7 @@ class _LoginScreenState extends State<LoginScreen>
                           ),
                         ],
                       ),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 15),
 
                       // Google Sign In Button
                       _buildGradientButton(
@@ -579,7 +579,7 @@ class _LoginScreenState extends State<LoginScreen>
                           ),
                         ),
                       ),
-                      const SizedBox(height: 40),
+                      const SizedBox(height: 15),
 
                       // Sign Up Link
                       Container(
