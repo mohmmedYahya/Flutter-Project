@@ -1,9 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
+import 'login_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
+
+  Future<void> _handleLogout(BuildContext context) async {
+    try {
+      final AuthService authService = AuthService();
+      await authService.signOut();
+
+      // Navigate to login screen and clear navigation stack
+      if (context.mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
+          (route) => false,
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,18 +43,7 @@ class HomeScreen extends StatelessWidget {
             icon: const Icon(Icons.account_circle),
             onSelected: (value) async {
               if (value == 'logout') {
-                try {
-                  await authService.signOut();
-                } catch (e) {
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(e.toString()),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                }
+                await _handleLogout(context);
               }
             },
             itemBuilder: (BuildContext context) => [
@@ -143,18 +155,7 @@ class HomeScreen extends StatelessWidget {
               const SizedBox(height: 32),
               ElevatedButton.icon(
                 onPressed: () async {
-                  try {
-                    await authService.signOut();
-                  } catch (e) {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(e.toString()),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
-                    }
-                  }
+                  await _handleLogout(context);
                 },
                 icon: const Icon(Icons.logout),
                 label: const Text('Sign Out'),

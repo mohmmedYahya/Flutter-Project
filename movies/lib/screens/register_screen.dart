@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import 'home_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -69,7 +70,15 @@ class _RegisterScreenState extends State<RegisterScreen>
         password: _passwordController.text,
       );
       // TODO: Update user profile with name: _nameController.text.trim()
-      // Navigation will be handled by AuthWrapper automatically
+
+      // Navigate to home screen after successful registration
+      if (mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+          (route) => false,
+        );
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
