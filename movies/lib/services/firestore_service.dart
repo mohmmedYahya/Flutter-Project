@@ -256,6 +256,81 @@ class FirestoreService {
     }
   }
 
+  // Search cars by category with make/model filtering
+  Stream<List<Car>> searchCarsByCategoryStream(
+    String categoryId,
+    String searchQuery,
+  ) {
+    try {
+      final categoryRef = _categoriesCollection.doc(categoryId);
+
+      if (searchQuery.isEmpty) {
+        // Return all cars in category if no search query
+        return _carsCollection
+            .where('category', isEqualTo: categoryRef)
+            .orderBy('listedDate', descending: true)
+            .snapshots()
+            .map(
+              (snapshot) =>
+                  snapshot.docs.map((doc) => Car.fromFirestore(doc)).toList(),
+            );
+      }
+
+      // For Firestore text search, we need to use array-contains or range queries
+      // This is a basic implementation - for production, consider using Algolia
+      return _carsCollection
+          .where('category', isEqualTo: categoryRef)
+          .orderBy('listedDate', descending: true)
+          .snapshots()
+          .map((snapshot) {
+            final allCars = snapshot.docs
+                .map((doc) => Car.fromFirestore(doc))
+                .toList();
+            final query = searchQuery.toLowerCase();
+
+            return allCars.where((car) {
+              return car.make.toLowerCase().contains(query) ||
+                  car.model.toLowerCase().contains(query);
+            }).toList();
+          });
+    } catch (e) {
+      return Stream.error(Exception('Failed to search cars by category: $e'));
+    }
+  }
+
+  // Advanced search with Firestore range queries for make
+  Stream<List<Car>> searchCarsByCategoryAdvancedStream(
+    String categoryId,
+    String searchQuery,
+  ) {
+    try {
+      final categoryRef = _categoriesCollection.doc(categoryId);
+
+      if (searchQuery.isEmpty) {
+        return getCarsByCategoryStream(categoryId);
+      }
+
+      final searchLower = searchQuery.toLowerCase();
+      final searchUpper =
+          searchLower + '\uf8ff'; // Unicode high character for range
+
+      // Search by make field using range query
+      return _carsCollection
+          .where('category', isEqualTo: categoryRef)
+          .where('make', isGreaterThanOrEqualTo: searchLower)
+          .where('make', isLessThan: searchUpper)
+          .orderBy('make')
+          .orderBy('listedDate', descending: true)
+          .snapshots()
+          .map(
+            (snapshot) =>
+                snapshot.docs.map((doc) => Car.fromFirestore(doc)).toList(),
+          );
+    } catch (e) {
+      return Stream.error(Exception('Failed to advanced search cars: $e'));
+    }
+  }
+
   // Get total cars count
   Future<int> getTotalCarsCount() async {
     try {

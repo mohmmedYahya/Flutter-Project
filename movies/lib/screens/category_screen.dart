@@ -4,10 +4,24 @@ import '../services/firestore_service.dart';
 import '../widgets/car_card.dart';
 import 'car_detail_screen.dart';
 
-class CategoryScreen extends StatelessWidget {
+class CategoryScreen extends StatefulWidget {
   final CarCategory category;
 
   const CategoryScreen({super.key, required this.category});
+
+  @override
+  State<CategoryScreen> createState() => _CategoryScreenState();
+}
+
+class _CategoryScreenState extends State<CategoryScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +29,7 @@ class CategoryScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('${category.name} Cars'),
+        title: Text('${widget.category.name} Cars'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: Column(
@@ -29,21 +43,24 @@ class CategoryScreen extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Text(category.icon, style: const TextStyle(fontSize: 32)),
+                Text(
+                  widget.category.icon,
+                  style: const TextStyle(fontSize: 32),
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        category.name,
+                        widget.category.name,
                         style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       Text(
-                        category.description,
+                        widget.category.description,
                         style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                       ),
                     ],
@@ -53,10 +70,46 @@ class CategoryScreen extends StatelessWidget {
             ),
           ),
 
+          // Search Bar
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Search by make or model...',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() {
+                            _searchQuery = '';
+                          });
+                        },
+                      )
+                    : null,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                filled: true,
+                fillColor: Colors.grey[50],
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                });
+              },
+            ),
+          ),
+
           // Cars List with StreamBuilder
           Expanded(
             child: StreamBuilder<List<Car>>(
-              stream: firestoreService.getCarsByCategoryStream(category.id),
+              stream: firestoreService.searchCarsByCategoryStream(
+                widget.category.id,
+                _searchQuery,
+              ),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
                   return Center(
