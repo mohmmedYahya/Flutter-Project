@@ -76,24 +76,40 @@ class _RegisterScreenState extends State<RegisterScreen>
       );
 
       if (userCredential != null && userCredential.user != null) {
-        // Update Firebase Auth display name
-        await _authService.updateUserProfile(
-          displayName: _nameController.text.trim(),
-        );
+        bool profileUpdateSuccess = true;
 
-        // Save additional profile data to Firestore
-        await _firestoreService.createUserProfile(
-          userId: userCredential.user!.uid,
-          email: _emailController.text.trim(),
-          displayName: _nameController.text.trim(),
-          phoneNumber: _phoneController.text.trim(),
-        );
+        // Try to update Firebase Auth display name (non-critical)
+        try {
+          await _authService.updateUserProfile(
+            displayName: _nameController.text.trim(),
+          );
+        } catch (e) {
+          print('Warning: Failed to update display name: $e');
+          profileUpdateSuccess = false;
+        }
 
-        // Show success message and navigate to home screen
+        // Try to save additional profile data to Firestore (non-critical)
+        try {
+          await _firestoreService.createUserProfile(
+            userId: userCredential.user!.uid,
+            email: _emailController.text.trim(),
+            displayName: _nameController.text.trim(),
+            phoneNumber: _phoneController.text.trim(),
+          );
+        } catch (e) {
+          print('Warning: Failed to save profile to Firestore: $e');
+          profileUpdateSuccess = false;
+        }
+
+        // Show success message and navigate to home screen regardless of profile update status
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('Registration successful! Welcome!'),
+              content: Text(
+                profileUpdateSuccess
+                    ? 'Registration successful! Welcome!'
+                    : 'Registration successful! Some profile data may need to be updated later.',
+              ),
               backgroundColor: Colors.green.shade600,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
@@ -103,19 +119,26 @@ class _RegisterScreenState extends State<RegisterScreen>
             ),
           );
 
+          // Add a small delay to ensure the snackbar shows, then navigate
+          await Future.delayed(const Duration(milliseconds: 500));
+
           // Navigate directly to home screen after successful registration
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => const HomeScreen()),
-            (route) => false,
-          );
+          if (mounted) {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => const HomeScreen()),
+              (route) => false,
+            );
+          }
         }
+      } else {
+        throw 'Failed to create user account. Please try again.';
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(e.toString()),
+            content: Text('Registration failed: ${e.toString()}'),
             backgroundColor: Colors.red.shade600,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
