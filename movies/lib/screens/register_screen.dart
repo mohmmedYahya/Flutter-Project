@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
+import 'home_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -88,7 +89,7 @@ class _RegisterScreenState extends State<RegisterScreen>
           phoneNumber: _phoneController.text.trim(),
         );
 
-        // Show success message
+        // Show success message and navigate to home screen
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -98,13 +99,17 @@ class _RegisterScreenState extends State<RegisterScreen>
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
-              duration: const Duration(seconds: 2),
+              duration: const Duration(seconds: 1),
             ),
           );
-        }
 
-        // Don't navigate manually - let AuthWrapper handle it
-        // The authentication state change will automatically trigger navigation
+          // Navigate directly to home screen after successful registration
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const HomeScreen()),
+            (route) => false,
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
