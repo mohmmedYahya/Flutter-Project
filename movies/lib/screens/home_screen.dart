@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
 import '../models/car.dart';
 import '../widgets/category_card.dart';
@@ -20,25 +18,8 @@ class _HomeScreenState extends State<HomeScreen> {
   final FirestoreService _firestoreService = FirestoreService();
   final TextEditingController _searchController = TextEditingController();
 
-  Future<void> _handleLogout(BuildContext context) async {
-    try {
-      final AuthService authService = AuthService();
-      await authService.signOut();
-      // Navigation will be handled automatically by AuthWrapper
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
-        );
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final AuthService authService = AuthService();
-    final User? user = authService.currentUser;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -47,38 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         centerTitle: true,
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        actions: [
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.account_circle, size: 35),
-            onSelected: (value) async {
-              if (value == 'logout') {
-                await _handleLogout(context);
-              }
-            },
-            itemBuilder: (BuildContext context) => [
-              PopupMenuItem<String>(
-                value: 'profile',
-                child: Row(
-                  children: [
-                    const Icon(Icons.person),
-                    const SizedBox(width: 8),
-                    Text(user?.email ?? 'User'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem<String>(
-                value: 'logout',
-                child: Row(
-                  children: [
-                    Icon(Icons.logout),
-                    SizedBox(width: 8),
-                    Text('Sign Out'),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
+        automaticallyImplyLeading: false,
       ),
       body: SingleChildScrollView(
         child: Column(

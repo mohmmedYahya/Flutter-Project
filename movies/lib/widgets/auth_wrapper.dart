@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
 import '../screens/login_screen.dart';
-import '../screens/home_screen.dart';
+import '../screens/main_navigation_screen.dart';
 
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
@@ -34,12 +34,12 @@ class AuthWrapper extends StatelessWidget {
           );
         }
 
-        // If user is logged in, show home screen
+        // If user is logged in, show main navigation screen
         if (snapshot.hasData && snapshot.data != null) {
           print(
-            'AuthWrapper - Showing HomeScreen for user: ${snapshot.data!.email}',
+            'AuthWrapper - Showing MainNavigationScreen for user: ${snapshot.data!.email}',
           );
-          return const HomeScreen();
+          return const MainNavigationScreen();
         }
 
         // If user is not logged in, show login screen
