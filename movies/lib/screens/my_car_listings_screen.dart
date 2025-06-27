@@ -148,38 +148,6 @@ class _MyCarListingsScreenState extends State<MyCarListingsScreen> {
 
           return Column(
             children: [
-              // Stats bar
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor.withOpacity(0.1),
-                  border: Border(
-                    bottom: BorderSide(color: Colors.grey.withOpacity(0.2)),
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _buildStatItem(
-                      '${userCars.length}',
-                      'Active Listings',
-                      Icons.car_rental,
-                    ),
-                    _buildStatItem(
-                      userCars.isEmpty ? '0' : userCars.length.toString(),
-                      'Total Views',
-                      Icons.visibility,
-                    ),
-                    _buildStatItem(
-                      '${userCars.where((car) => car.listedDate.isAfter(DateTime.now().subtract(const Duration(days: 30)))).length}',
-                      'This Month',
-                      Icons.calendar_today,
-                    ),
-                  ],
-                ),
-              ),
-
               // Car listings
               Expanded(
                 child: ListView.builder(
@@ -187,8 +155,8 @@ class _MyCarListingsScreenState extends State<MyCarListingsScreen> {
                   itemCount: userCars.length,
                   itemBuilder: (context, index) {
                     final car = userCars[index];
-                    return Card(
-                      margin: const EdgeInsets.symmetric(
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
                         horizontal: 8,
                         vertical: 4,
                       ),
