@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
 import '../screens/home_screen.dart';
 import '../screens/my_car_listings_screen.dart';
+import '../screens/profile_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -17,6 +18,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   final List<Widget> _screens = [
     const HomeScreen(),
     const MyCarListingsScreen(),
+    const ProfileScreen(),
   ];
 
   Future<void> _handleLogout(BuildContext context) async {
@@ -60,6 +62,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             icon: Icon(Icons.car_rental),
             activeIcon: Icon(Icons.car_rental),
             label: 'My Listings',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            activeIcon: Icon(Icons.person),
+            label: 'Profile',
           ),
         ],
       ),
@@ -110,18 +117,18 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 Navigator.pop(context);
               },
             ),
-            const Divider(),
             ListTile(
               leading: const Icon(Icons.person),
               title: const Text('Profile'),
+              selected: _currentIndex == 2,
               onTap: () {
+                setState(() {
+                  _currentIndex = 2;
+                });
                 Navigator.pop(context);
-                // TODO: Navigate to profile screen
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Profile screen coming soon!')),
-                );
               },
             ),
+            const Divider(),
             ListTile(
               leading: const Icon(Icons.settings),
               title: const Text('Settings'),
