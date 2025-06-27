@@ -222,15 +222,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const AddCarScreen()),
-          );
-        },
-        child: const Icon(Icons.add),
-      ),
     );
   }
 
