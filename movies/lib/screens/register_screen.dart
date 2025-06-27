@@ -13,6 +13,7 @@ class _RegisterScreenState extends State<RegisterScreen>
     with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -48,6 +49,7 @@ class _RegisterScreenState extends State<RegisterScreen>
   @override
   void dispose() {
     _nameController.dispose();
+    _phoneController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
@@ -310,7 +312,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                           const SizedBox(width: 48), // Balance the back button
                         ],
                       ),
-                      const SizedBox(height: 40),
+                      const SizedBox(height: 30),
 
                       // Logo and Welcome Section
                       Container(
@@ -339,7 +341,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                           color: Colors.white,
                         ),
                       ),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 20),
                       Text(
                         'Create Account',
                         style: TextStyle(
@@ -349,16 +351,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                           letterSpacing: 0.5,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Join us to discover amazing movies',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey.shade600,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 48),
+                      const SizedBox(height: 20),
 
                       // Name Field
                       _buildCustomTextField(
@@ -371,6 +364,32 @@ class _RegisterScreenState extends State<RegisterScreen>
                           }
                           if (value.trim().length < 2) {
                             return 'Name must be at least 2 characters';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Phone Field
+                      _buildCustomTextField(
+                        controller: _phoneController,
+                        label: 'Phone Number',
+                        prefixIcon: Icons.phone_rounded,
+                        keyboardType: TextInputType.phone,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your phone number';
+                          }
+                          // Remove all non-digit characters for validation
+                          String digitsOnly = value.replaceAll(
+                            RegExp(r'[^\d]'),
+                            '',
+                          );
+                          if (digitsOnly.length < 10) {
+                            return 'Phone number must be at least 10 digits';
+                          }
+                          if (digitsOnly.length > 15) {
+                            return 'Phone number is too long';
                           }
                           return null;
                         },
