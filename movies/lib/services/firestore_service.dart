@@ -211,4 +211,43 @@ class FirestoreService {
       throw Exception('Failed to get categories count: $e');
     }
   }
+
+  // ========== USER-SPECIFIC CAR OPERATIONS ==========
+
+  // Get cars by user ID
+  Future<List<Car>> getCarsByUserId(String userId) async {
+    try {
+      final querySnapshot = await _carsCollection
+          .where('userId', isEqualTo: userId)
+          .orderBy('listedDate', descending: true)
+          .get();
+      return querySnapshot.docs.map((doc) => Car.fromFirestore(doc)).toList();
+    } catch (e) {
+      throw Exception('Failed to fetch user cars: $e');
+    }
+  }
+
+  // Get cars by user ID stream for real-time updates
+  Stream<List<Car>> getCarsByUserIdStream(String userId) {
+    return _carsCollection
+        .where('userId', isEqualTo: userId)
+        .orderBy('listedDate', descending: true)
+        .snapshots()
+        .map(
+          (snapshot) =>
+              snapshot.docs.map((doc) => Car.fromFirestore(doc)).toList(),
+        );
+  }
+
+  // Get cars count by user ID
+  Future<int> getCarsCountByUserId(String userId) async {
+    try {
+      final querySnapshot = await _carsCollection
+          .where('userId', isEqualTo: userId)
+          .get();
+      return querySnapshot.docs.length;
+    } catch (e) {
+      throw Exception('Failed to get user cars count: $e');
+    }
+  }
 }

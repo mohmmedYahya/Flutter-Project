@@ -17,6 +17,7 @@ class Car {
   final String sellerName;
   final String sellerPhone;
   final DateTime listedDate;
+  final String userId; // Add userId field to associate car with user
 
   Car({
     required this.id,
@@ -35,6 +36,7 @@ class Car {
     required this.sellerName,
     required this.sellerPhone,
     required this.listedDate,
+    required this.userId,
   });
 
   // Convert Car to Firestore document
@@ -57,6 +59,7 @@ class Car {
       'sellerName': sellerName,
       'sellerPhone': sellerPhone,
       'listedDate': Timestamp.fromDate(listedDate),
+      'userId': userId, // Include userId in Firestore document
     };
   }
 
@@ -85,6 +88,8 @@ class Car {
       listedDate: data['listedDate'] is Timestamp
           ? (data['listedDate'] as Timestamp).toDate()
           : DateTime.now(),
+      userId:
+          data['userId'] ?? '', // Include userId when creating from Firestore
     );
   }
 
@@ -107,6 +112,7 @@ class Car {
       'sellerName': sellerName,
       'sellerPhone': sellerPhone,
       'listedDate': listedDate.toIso8601String(),
+      'userId': userId, // Include userId in JSON
     };
   }
 
@@ -129,6 +135,7 @@ class Car {
       sellerName: json['sellerName'],
       sellerPhone: json['sellerPhone'],
       listedDate: DateTime.parse(json['listedDate']),
+      userId: json['userId'] ?? '', // Include userId when creating from JSON
     );
   }
 }

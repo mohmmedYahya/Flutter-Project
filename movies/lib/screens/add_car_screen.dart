@@ -114,6 +114,7 @@ class _AddCarScreenState extends State<AddCarScreen> {
         throw Exception('User not authenticated');
       }
 
+      print('User ID: ${user.uid}');
       // Create new car object
       final newCar = Car(
         id: '', // This will be set by Firestore
@@ -134,6 +135,8 @@ class _AddCarScreenState extends State<AddCarScreen> {
         sellerName: user.displayName ?? user.email ?? 'Anonymous',
         sellerPhone: _sellerPhoneController.text.trim(),
         listedDate: DateTime.now(),
+        userId: user
+            .uid, // Add the user ID to associate the car with the current user
       );
 
       // Save to Firestore
