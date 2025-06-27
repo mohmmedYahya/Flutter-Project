@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/car.dart';
 import '../services/auth_service.dart';
+import '../services/firestore_service.dart';
 
 class AddCarScreen extends StatefulWidget {
   const AddCarScreen({super.key});
@@ -12,6 +13,7 @@ class AddCarScreen extends StatefulWidget {
 
 class _AddCarScreenState extends State<AddCarScreen> {
   final _formKey = GlobalKey<FormState>();
+  final FirestoreService _firestoreService = FirestoreService();
   final TextEditingController _makeController = TextEditingController();
   final TextEditingController _modelController = TextEditingController();
   final TextEditingController _yearController = TextEditingController();
@@ -22,21 +24,13 @@ class _AddCarScreenState extends State<AddCarScreen> {
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _sellerPhoneController = TextEditingController();
 
-  String _selectedCategory = 'Sedan';
+  String? _selectedCategory;
   String _selectedFuelType = 'Gasoline';
   String _selectedTransmission = 'Automatic';
   String _selectedCondition = 'Excellent';
 
-  final List<String> _categories = [
-    'Sedan',
-    'SUV',
-    'Hatchback',
-    'Coupe',
-    'Convertible',
-    'Wagon',
-    'Pickup',
-    'Van',
-  ];
+  List<CarCategory> _categories = [];
+  bool _categoriesLoading = false;
 
   final List<String> _fuelTypes = [
     'Gasoline',
@@ -58,8 +52,53 @@ class _AddCarScreenState extends State<AddCarScreen> {
 
   bool _isLoading = false;
 
+  @override
+  void initState() {
+    super.initState();
+    _loadCategories();
+  }
+
+  Future<void> _loadCategories() async {
+    setState(() {
+      _categoriesLoading = true;
+    });
+
+    try {
+      final categories = await _firestoreService.getCategories();
+      setState(() {
+        _categories = categories;
+        if (categories.isNotEmpty) {
+          _selectedCategory = categories.first.id;
+        }
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error loading categories: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      setState(() {
+        _categoriesLoading = false;
+      });
+    }
+  }
+
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    if (_selectedCategory == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select a category'),
+          backgroundColor: Colors.red,
+        ),
+      );
       return;
     }
 
@@ -77,12 +116,12 @@ class _AddCarScreenState extends State<AddCarScreen> {
 
       // Create new car object
       final newCar = Car(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        id: '', // This will be set by Firestore
         make: _makeController.text.trim(),
         model: _modelController.text.trim(),
         year: int.parse(_yearController.text.trim()),
         price: double.parse(_priceController.text.trim()),
-        category: _selectedCategory,
+        category: _selectedCategory!,
         imageUrl: _imageUrlController.text.trim().isEmpty
             ? 'https://via.placeholder.com/300x200?text=No+Image'
             : _imageUrlController.text.trim(),
@@ -97,13 +136,13 @@ class _AddCarScreenState extends State<AddCarScreen> {
         listedDate: DateTime.now(),
       );
 
-      // TODO: Save to database/storage
-      // For now, just show success message
+      // Save to Firestore
+      await _firestoreService.addCar(newCar);
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Car listing submitted successfully!'),
+            content: Text('Car listing added successfully!'),
             backgroundColor: Colors.green,
           ),
         );
@@ -208,9 +247,9 @@ class _AddCarScreenState extends State<AddCarScreen> {
                       controller: _priceController,
                       keyboardType: TextInputType.number,
                       decoration: const InputDecoration(
-                        labelText: 'Price (USD) *',
+                        labelText: 'Price *',
+                        prefixText: '₪ ',
                         border: OutlineInputBorder(),
-                        prefixText: '\$',
                       ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
@@ -229,22 +268,65 @@ class _AddCarScreenState extends State<AddCarScreen> {
               const SizedBox(height: 16),
 
               // Category Dropdown
-              DropdownButtonFormField<String>(
-                value: _selectedCategory,
+              _categoriesLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : DropdownButtonFormField<String>(
+                      value: _selectedCategory,
+                      decoration: const InputDecoration(
+                        labelText: 'Category *',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: _categories.map((category) {
+                        return DropdownMenuItem<String>(
+                          value: category.id,
+                          child: Row(
+                            children: [
+                              Text(category.icon),
+                              const SizedBox(width: 8),
+                              Text(category.name),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedCategory = value;
+                        });
+                      },
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please select a category';
+                        }
+                        return null;
+                      },
+                    ),
+              const SizedBox(height: 16),
+
+              // Image URL
+              TextFormField(
+                controller: _imageUrlController,
                 decoration: const InputDecoration(
-                  labelText: 'Category *',
+                  labelText: 'Image URL (Optional)',
+                  hintText: 'https://example.com/car-image.jpg',
                   border: OutlineInputBorder(),
                 ),
-                items: _categories.map((category) {
-                  return DropdownMenuItem(
-                    value: category,
-                    child: Text(category),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedCategory = value!;
-                  });
+              ),
+              const SizedBox(height: 16),
+
+              // Description
+              TextFormField(
+                controller: _descriptionController,
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  labelText: 'Description *',
+                  hintText: 'Describe the car features, condition, etc.',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Please enter a description';
+                  }
+                  return null;
                 },
               ),
               const SizedBox(height: 16),
@@ -258,8 +340,8 @@ class _AddCarScreenState extends State<AddCarScreen> {
                       keyboardType: TextInputType.number,
                       decoration: const InputDecoration(
                         labelText: 'Mileage *',
+                        suffixText: 'km',
                         border: OutlineInputBorder(),
-                        suffixText: 'miles',
                       ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
@@ -267,7 +349,7 @@ class _AddCarScreenState extends State<AddCarScreen> {
                         }
                         final mileage = int.tryParse(value.trim());
                         if (mileage == null || mileage < 0) {
-                          return 'Invalid';
+                          return 'Invalid mileage';
                         }
                         return null;
                       },
@@ -294,38 +376,41 @@ class _AddCarScreenState extends State<AddCarScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Fuel Type and Transmission Row
+              // Fuel Type Dropdown
+              DropdownButtonFormField<String>(
+                value: _selectedFuelType,
+                decoration: const InputDecoration(
+                  labelText: 'Fuel Type',
+                  border: OutlineInputBorder(),
+                ),
+                items: _fuelTypes.map((fuelType) {
+                  return DropdownMenuItem<String>(
+                    value: fuelType,
+                    child: Text(fuelType),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedFuelType = value!;
+                  });
+                },
+              ),
+              const SizedBox(height: 16),
+
+              // Transmission and Condition Row
               Row(
                 children: [
                   Expanded(
                     child: DropdownButtonFormField<String>(
-                      value: _selectedFuelType,
-                      decoration: const InputDecoration(
-                        labelText: 'Fuel Type *',
-                        border: OutlineInputBorder(),
-                      ),
-                      items: _fuelTypes.map((fuel) {
-                        return DropdownMenuItem(value: fuel, child: Text(fuel));
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedFuelType = value!;
-                        });
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
                       value: _selectedTransmission,
                       decoration: const InputDecoration(
-                        labelText: 'Transmission *',
+                        labelText: 'Transmission',
                         border: OutlineInputBorder(),
                       ),
-                      items: _transmissions.map((trans) {
-                        return DropdownMenuItem(
-                          value: trans,
-                          child: Text(trans),
+                      items: _transmissions.map((transmission) {
+                        return DropdownMenuItem<String>(
+                          value: transmission,
+                          child: Text(transmission),
                         );
                       }).toList(),
                       onChanged: (value) {
@@ -335,32 +420,32 @@ class _AddCarScreenState extends State<AddCarScreen> {
                       },
                     ),
                   ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      value: _selectedCondition,
+                      decoration: const InputDecoration(
+                        labelText: 'Condition',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: _conditions.map((condition) {
+                        return DropdownMenuItem<String>(
+                          value: condition,
+                          child: Text(condition),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedCondition = value!;
+                        });
+                      },
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 16),
 
-              // Condition
-              DropdownButtonFormField<String>(
-                value: _selectedCondition,
-                decoration: const InputDecoration(
-                  labelText: 'Condition *',
-                  border: OutlineInputBorder(),
-                ),
-                items: _conditions.map((condition) {
-                  return DropdownMenuItem(
-                    value: condition,
-                    child: Text(condition),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedCondition = value!;
-                  });
-                },
-              ),
-              const SizedBox(height: 16),
-
-              // Phone Number
+              // Seller Phone
               TextFormField(
                 controller: _sellerPhoneController,
                 keyboardType: TextInputType.phone,
@@ -371,36 +456,7 @@ class _AddCarScreenState extends State<AddCarScreen> {
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Please enter phone number';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-
-              // Image URL (Optional)
-              TextFormField(
-                controller: _imageUrlController,
-                decoration: const InputDecoration(
-                  labelText: 'Image URL (Optional)',
-                  hintText: 'https://example.com/car-image.jpg',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Description
-              TextFormField(
-                controller: _descriptionController,
-                maxLines: 4,
-                decoration: const InputDecoration(
-                  labelText: 'Description *',
-                  hintText: 'Describe the car condition, features, etc.',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter description';
+                    return 'Please enter your phone number';
                   }
                   return null;
                 },
@@ -408,31 +464,24 @@ class _AddCarScreenState extends State<AddCarScreen> {
               const SizedBox(height: 24),
 
               // Submit Button
-              ElevatedButton(
-                onPressed: _isLoading ? null : _submitForm,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  backgroundColor: Theme.of(context).primaryColor,
-                  foregroundColor: Colors.white,
-                ),
-                child: _isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.white,
+              SizedBox(
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _submitForm,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).primaryColor,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: _isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text(
+                          'Add Car Listing',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                      )
-                    : const Text(
-                        'Submit Car Listing',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                ),
               ),
             ],
           ),

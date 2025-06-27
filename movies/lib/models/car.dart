@@ -1,10 +1,12 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Car {
   final String id;
   final String make;
   final String model;
   final int year;
   final double price;
-  final String category;
+  final String category; // This will store the category document ID
   final String imageUrl;
   final String description;
   final int mileage;
@@ -35,7 +37,58 @@ class Car {
     required this.listedDate,
   });
 
-  // Convert Car to JSON
+  // Convert Car to Firestore document
+  Map<String, dynamic> toFirestore() {
+    return {
+      'make': make,
+      'model': model,
+      'year': year,
+      'price': price,
+      'category': FirebaseFirestore.instance
+          .collection('categories')
+          .doc(category),
+      'imageUrl': imageUrl,
+      'description': description,
+      'mileage': mileage,
+      'fuelType': fuelType,
+      'transmission': transmission,
+      'condition': condition,
+      'location': location,
+      'sellerName': sellerName,
+      'sellerPhone': sellerPhone,
+      'listedDate': Timestamp.fromDate(listedDate),
+    };
+  }
+
+  // Create Car from Firestore document
+  factory Car.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
+    final data = doc.data()!;
+
+    return Car(
+      id: doc.id,
+      make: data['make'] ?? '',
+      model: data['model'] ?? '',
+      year: data['year'] ?? 0,
+      price: (data['price'] ?? 0).toDouble(),
+      category: data['category'] is DocumentReference
+          ? (data['category'] as DocumentReference).id
+          : data['category'] ?? '',
+      imageUrl: data['imageUrl'] ?? '',
+      description: data['description'] ?? '',
+      mileage: data['mileage'] ?? 0,
+      fuelType: data['fuelType'] ?? '',
+      transmission: data['transmission'] ?? '',
+      condition: data['condition'] ?? '',
+      location: data['location'] ?? '',
+      sellerName: data['sellerName'] ?? '',
+      sellerPhone: data['sellerPhone'] ?? '',
+      listedDate: data['listedDate'] is Timestamp
+          ? (data['listedDate'] as Timestamp).toDate()
+          : DateTime.now(),
+    );
+  }
+
+  // Convert Car to JSON (for backwards compatibility)
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -57,7 +110,7 @@ class Car {
     };
   }
 
-  // Create Car from JSON
+  // Create Car from JSON (for backwards compatibility)
   factory Car.fromJson(Map<String, dynamic> json) {
     return Car(
       id: json['id'],
@@ -92,4 +145,23 @@ class CarCategory {
     required this.icon,
     required this.description,
   });
+
+  // Convert CarCategory to Firestore document
+  Map<String, dynamic> toFirestore() {
+    return {'name': name, 'icon': icon, 'description': description};
+  }
+
+  // Create CarCategory from Firestore document
+  factory CarCategory.fromFirestore(
+    DocumentSnapshot<Map<String, dynamic>> doc,
+  ) {
+    final data = doc.data()!;
+
+    return CarCategory(
+      id: doc.id,
+      name: data['name'] ?? '',
+      icon: data['icon'] ?? '',
+      description: data['description'] ?? '',
+    );
+  }
 }

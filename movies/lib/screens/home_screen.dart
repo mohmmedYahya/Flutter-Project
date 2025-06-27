@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
+import '../services/firestore_service.dart';
 import '../models/car.dart';
-import '../data/dummy_data.dart';
 import '../widgets/category_card.dart';
 import '../widgets/car_card.dart';
 import '../screens/category_screen.dart';
@@ -17,8 +17,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final List<CarCategory> categories = DummyData.getCarCategories();
-  final List<Car> featuredCars = DummyData.getFeaturedCars();
+  final FirestoreService _firestoreService = FirestoreService();
   final TextEditingController _searchController = TextEditingController();
 
   Future<void> _handleLogout(BuildContext context) async {
@@ -87,7 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             // Categories Section
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -97,12 +96,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  TextButton(
-                    onPressed: () {
-                      // TODO: Navigate to all categories
-                    },
-                    child: const Text('View All'),
-                  ),
                 ],
               ),
             ),
@@ -110,26 +103,45 @@ class _HomeScreenState extends State<HomeScreen> {
             // Categories Grid
             SizedBox(
               height: 150,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                itemCount: categories.length,
-                itemBuilder: (context, index) {
-                  final category = categories[index];
-                  return SizedBox(
-                    width: 120,
-                    child: CategoryCard(
-                      category: category,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                CategoryScreen(category: category),
-                          ),
-                        );
-                      },
-                    ),
+              child: StreamBuilder<List<CarCategory>>(
+                stream: _firestoreService.getCategoriesStream(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  }
+
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  final categories = snapshot.data ?? [];
+
+                  if (categories.isEmpty) {
+                    return const Center(child: Text('No categories available'));
+                  }
+
+                  return ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    itemCount: categories.length,
+                    itemBuilder: (context, index) {
+                      final category = categories[index];
+                      return SizedBox(
+                        width: 120,
+                        child: CategoryCard(
+                          category: category,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    CategoryScreen(category: category),
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    },
                   );
                 },
               ),
@@ -149,31 +161,74 @@ class _HomeScreenState extends State<HomeScreen> {
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  TextButton(
-                    onPressed: () {
-                      // TODO: Navigate to all cars
-                    },
-                    child: const Text('View All'),
-                  ),
                 ],
               ),
             ),
 
             // Featured Cars List
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: featuredCars.length,
-              itemBuilder: (context, index) {
-                final car = featuredCars[index];
-                return CarCard(
-                  car: car,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => CarDetailScreen(car: car),
+            StreamBuilder<List<Car>>(
+              stream: _firestoreService.getFeaturedCarsStream(),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        children: [
+                          const Icon(Icons.error, size: 64, color: Colors.red),
+                          const SizedBox(height: 16),
+                          Text('Error loading cars: ${snapshot.error}'),
+                        ],
                       ),
+                    ),
+                  );
+                }
+
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(32.0),
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+                }
+
+                final featuredCars = snapshot.data ?? [];
+
+                if (featuredCars.isEmpty) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(32.0),
+                      child: Column(
+                        children: [
+                          Icon(Icons.car_rental, size: 64, color: Colors.grey),
+                          SizedBox(height: 16),
+                          Text(
+                            'No cars available yet',
+                            style: TextStyle(fontSize: 18, color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
+                return ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: featuredCars.length,
+                  itemBuilder: (context, index) {
+                    final car = featuredCars[index];
+                    return CarCard(
+                      car: car,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => CarDetailScreen(car: car),
+                          ),
+                        );
+                      },
                     );
                   },
                 );
@@ -181,27 +236,39 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
 
             // Quick Stats
-            Container(
-              margin: const EdgeInsets.all(16),
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
+            StreamBuilder<int>(
+              stream: _firestoreService.getCarsStream().map(
+                (cars) => cars.length,
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildStatColumn(
-                    '${DummyData.getCars().length}',
-                    'Cars Available',
+              builder: (context, carsSnapshot) {
+                return StreamBuilder<int>(
+                  stream: _firestoreService.getCategoriesStream().map(
+                    (categories) => categories.length,
                   ),
-                  _buildStatColumn('${categories.length}', 'Categories'),
-                  _buildStatColumn('100%', 'Verified Sellers'),
-                ],
-              ),
-            ),
+                  builder: (context, categoriesSnapshot) {
+                    final carsCount = carsSnapshot.data ?? 0;
+                    final categoriesCount = categoriesSnapshot.data ?? 0;
 
-            const SizedBox(height: 20),
+                    return Container(
+                      margin: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).primaryColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          _buildStatColumn('$carsCount', 'Cars Available'),
+                          _buildStatColumn('$categoriesCount', 'Categories'),
+                          _buildStatColumn('100%', 'Verified Sellers'),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
           ],
         ),
       ),
@@ -212,8 +279,6 @@ class _HomeScreenState extends State<HomeScreen> {
             MaterialPageRoute(builder: (context) => const AddCarScreen()),
           );
         },
-        backgroundColor: Theme.of(context).primaryColor,
-        foregroundColor: Colors.white,
         child: const Icon(Icons.add),
       ),
     );
@@ -224,14 +289,13 @@ class _HomeScreenState extends State<HomeScreen> {
       children: [
         Text(
           number,
-          style: const TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Colors.deepPurple,
-          ),
+          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
-        const SizedBox(height: 4),
-        Text(label, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+        Text(
+          label,
+          style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+          textAlign: TextAlign.center,
+        ),
       ],
     );
   }

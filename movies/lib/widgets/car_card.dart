@@ -56,7 +56,7 @@ class CarCard extends StatelessWidget {
                   const SizedBox(height: 8),
                   // Price
                   Text(
-                    '\$${car.price.toStringAsFixed(0)}',
+                    '₪${car.price.toStringAsFixed(0)}',
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -70,7 +70,7 @@ class CarCard extends StatelessWidget {
                       Icon(Icons.speed, size: 16, color: Colors.grey[600]),
                       const SizedBox(width: 4),
                       Text(
-                        '${car.mileage.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')} mi',
+                        '${car.mileage.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')} km',
                         style: TextStyle(color: Colors.grey[600]),
                       ),
                       const SizedBox(width: 16),
@@ -175,7 +175,7 @@ class CarGridCard extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          '\$${car.price.toStringAsFixed(0)}',
+                          '₪${car.price.toStringAsFixed(0)}',
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,

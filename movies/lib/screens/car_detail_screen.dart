@@ -1,10 +1,42 @@
 import 'package:flutter/material.dart';
 import '../models/car.dart';
+import '../services/firestore_service.dart';
 
-class CarDetailScreen extends StatelessWidget {
+class CarDetailScreen extends StatefulWidget {
   final Car car;
 
   const CarDetailScreen({super.key, required this.car});
+
+  @override
+  State<CarDetailScreen> createState() => _CarDetailScreenState();
+}
+
+class _CarDetailScreenState extends State<CarDetailScreen> {
+  final FirestoreService _firestoreService = FirestoreService();
+  CarCategory? _category;
+  bool _loadingCategory = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCategory();
+  }
+
+  Future<void> _loadCategory() async {
+    try {
+      final category = await _firestoreService.getCategoryById(
+        widget.car.category,
+      );
+      setState(() {
+        _category = category;
+        _loadingCategory = false;
+      });
+    } catch (e) {
+      setState(() {
+        _loadingCategory = false;
+      });
+    }
+  }
 
   void _showContactInfo(BuildContext context) {
     showDialog(
@@ -16,9 +48,9 @@ class CarDetailScreen extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Name: ${car.sellerName}'),
+              Text('Name: ${widget.car.sellerName}'),
               const SizedBox(height: 8),
-              Text('Phone: ${car.sellerPhone}'),
+              Text('Phone: ${widget.car.sellerPhone}'),
               const SizedBox(height: 16),
               const Text(
                 'Please call or text the seller directly to inquire about this vehicle.',
@@ -41,7 +73,7 @@ class CarDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('${car.make} ${car.model}'),
+        title: Text('${widget.car.make} ${widget.car.model}'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: SingleChildScrollView(
@@ -52,12 +84,35 @@ class CarDetailScreen extends StatelessWidget {
             Container(
               height: 250,
               width: double.infinity,
-              color: Colors.grey[300],
-              child: const Icon(
-                Icons.directions_car,
-                size: 100,
-                color: Colors.grey,
-              ),
+              decoration: BoxDecoration(color: Colors.grey[300]),
+              child: widget.car.imageUrl.isNotEmpty
+                  ? Image.network(
+                      widget.car.imageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Icon(
+                          Icons.directions_car,
+                          size: 100,
+                          color: Colors.grey,
+                        );
+                      },
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Center(
+                          child: CircularProgressIndicator(
+                            value: loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded /
+                                      loadingProgress.expectedTotalBytes!
+                                : null,
+                          ),
+                        );
+                      },
+                    )
+                  : const Icon(
+                      Icons.directions_car,
+                      size: 100,
+                      color: Colors.grey,
+                    ),
             ),
             Padding(
               padding: const EdgeInsets.all(16.0),
@@ -74,14 +129,14 @@ class CarDetailScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              '${car.make} ${car.model}',
+                              '${widget.car.make} ${widget.car.model}',
                               style: const TextStyle(
                                 fontSize: 28,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                             Text(
-                              '${car.year}',
+                              '${widget.car.year}',
                               style: TextStyle(
                                 fontSize: 20,
                                 color: Colors.grey[600],
@@ -91,7 +146,7 @@ class CarDetailScreen extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        '\$${car.price.toStringAsFixed(0)}',
+                        '₪${widget.car.price.toStringAsFixed(0)}',
                         style: const TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
@@ -111,12 +166,19 @@ class CarDetailScreen extends StatelessWidget {
 
                   _buildDetailRow(
                     'Mileage',
-                    '${car.mileage.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')} miles',
+                    '${widget.car.mileage.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')} km',
                   ),
-                  _buildDetailRow('Fuel Type', car.fuelType),
-                  _buildDetailRow('Transmission', car.transmission),
-                  _buildDetailRow('Condition', car.condition),
-                  _buildDetailRow('Category', car.category.toUpperCase()),
+                  _buildDetailRow('Fuel Type', widget.car.fuelType),
+                  _buildDetailRow('Transmission', widget.car.transmission),
+                  _buildDetailRow('Condition', widget.car.condition),
+                  _loadingCategory
+                      ? _buildDetailRow('Category', 'Loading...')
+                      : _buildDetailRow(
+                          'Category',
+                          _category != null
+                              ? '${_category!.icon} ${_category!.name}'
+                              : widget.car.category.toUpperCase(),
+                        ),
 
                   const SizedBox(height: 24),
 
@@ -127,7 +189,7 @@ class CarDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    car.description,
+                    widget.car.description,
                     style: const TextStyle(fontSize: 16, height: 1.5),
                   ),
 
@@ -149,7 +211,7 @@ class CarDetailScreen extends StatelessWidget {
                                   'Location',
                                   style: TextStyle(fontWeight: FontWeight.bold),
                                 ),
-                                Text(car.location),
+                                Text(widget.car.location),
                               ],
                             ),
                           ),
@@ -179,7 +241,7 @@ class CarDetailScreen extends StatelessWidget {
                             children: [
                               const Icon(Icons.person),
                               const SizedBox(width: 8),
-                              Text(car.sellerName),
+                              Text(widget.car.sellerName),
                             ],
                           ),
                           const SizedBox(height: 8),
@@ -187,7 +249,7 @@ class CarDetailScreen extends StatelessWidget {
                             children: [
                               const Icon(Icons.phone),
                               const SizedBox(width: 8),
-                              Text(car.sellerPhone),
+                              Text(widget.car.sellerPhone),
                             ],
                           ),
                           const SizedBox(height: 8),
@@ -196,7 +258,7 @@ class CarDetailScreen extends StatelessWidget {
                               const Icon(Icons.calendar_today),
                               const SizedBox(width: 8),
                               Text(
-                                'Listed: ${car.listedDate.toString().split(' ')[0]}',
+                                'Listed: ${widget.car.listedDate.toString().split(' ')[0]}',
                               ),
                             ],
                           ),
@@ -210,20 +272,22 @@ class CarDetailScreen extends StatelessWidget {
                   // Contact Button
                   SizedBox(
                     width: double.infinity,
-                    child: ElevatedButton.icon(
+                    height: 50,
+                    child: ElevatedButton(
                       onPressed: () => _showContactInfo(context),
-                      icon: const Icon(Icons.phone),
-                      label: const Text('Contact Seller'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
+                        backgroundColor: Theme.of(context).primaryColor,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        textStyle: const TextStyle(fontSize: 18),
+                      ),
+                      child: const Text(
+                        'Contact Seller',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
-
-                  const SizedBox(height: 32),
                 ],
               ),
             ),
@@ -237,15 +301,18 @@ class CarDetailScreen extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
             width: 120,
             child: Text(
-              label,
+              '$label:',
               style: const TextStyle(fontWeight: FontWeight.w500),
             ),
           ),
-          Text(value),
+          Expanded(
+            child: Text(value, style: TextStyle(color: Colors.grey[700])),
+          ),
         ],
       ),
     );
