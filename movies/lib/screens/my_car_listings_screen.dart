@@ -188,7 +188,15 @@ class _MyCarListingsScreenState extends State<MyCarListingsScreen> {
                                 child: const Icon(Icons.more_vert, size: 20),
                               ),
                               onSelected: (value) {
-                                if (value == 'delete') {
+                                if (value == 'edit') {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          AddCarScreen(carToEdit: car),
+                                    ),
+                                  );
+                                } else if (value == 'delete') {
                                   _deleteCarListing(car);
                                 }
                               },

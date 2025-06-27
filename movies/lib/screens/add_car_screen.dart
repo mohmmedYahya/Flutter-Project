@@ -6,7 +6,9 @@ import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
 
 class AddCarScreen extends StatefulWidget {
-  const AddCarScreen({super.key});
+  final Car? carToEdit;
+
+  const AddCarScreen({super.key, this.carToEdit});
 
   @override
   State<AddCarScreen> createState() => _AddCarScreenState();
@@ -53,12 +55,32 @@ class _AddCarScreenState extends State<AddCarScreen> {
   ];
 
   bool _isLoading = false;
+  bool get _isEditing => widget.carToEdit != null;
 
   @override
   void initState() {
     super.initState();
     _loadCategories();
     _loadUserProfile();
+    _populateFieldsForEditing();
+  }
+
+  void _populateFieldsForEditing() {
+    if (_isEditing && widget.carToEdit != null) {
+      final car = widget.carToEdit!;
+      _makeController.text = car.make;
+      _modelController.text = car.model;
+      _yearController.text = car.year.toString();
+      _priceController.text = car.price.toString();
+      _imageUrlController.text = car.imageUrl;
+      _descriptionController.text = car.description;
+      _mileageController.text = car.mileage.toString();
+      _locationController.text = car.location;
+      _selectedCategory = car.category;
+      _selectedFuelType = car.fuelType;
+      _selectedTransmission = car.transmission;
+      _selectedCondition = car.condition;
+    }
   }
 
   Future<void> _loadCategories() async {
@@ -143,45 +165,83 @@ class _AddCarScreenState extends State<AddCarScreen> {
       }
 
       print('User ID: ${user.uid}');
-      // Create new car object
-      final newCar = Car(
-        id: '', // This will be set by Firestore
-        make: _makeController.text.trim(),
-        model: _modelController.text.trim(),
-        year: int.parse(_yearController.text.trim()),
-        price: double.parse(_priceController.text.trim()),
-        category: _selectedCategory!,
-        imageUrl: _imageUrlController.text.trim().isEmpty
-            ? 'https://via.placeholder.com/300x200?text=No+Image'
-            : _imageUrlController.text.trim(),
-        description: _descriptionController.text.trim(),
-        mileage: int.parse(_mileageController.text.trim()),
-        fuelType: _selectedFuelType,
-        transmission: _selectedTransmission,
-        condition: _selectedCondition,
-        location: _locationController.text.trim(),
-        sellerName:
-            _userProfile?.displayName ??
-            user.displayName ??
-            user.email ??
-            'Anonymous',
-        sellerPhone: _userProfile?.phoneNumber ?? 'No phone number',
-        listedDate: DateTime.now(),
-        userId: user
-            .uid, // Add the user ID to associate the car with the current user
-      );
 
-      // Save to Firestore
-      await _firestoreService.addCar(newCar);
-
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Car listing added successfully!'),
-            backgroundColor: Colors.green,
-          ),
+      if (_isEditing) {
+        // Update existing car
+        final updatedCar = Car(
+          id: widget.carToEdit!.id,
+          make: _makeController.text.trim(),
+          model: _modelController.text.trim(),
+          year: int.parse(_yearController.text.trim()),
+          price: double.parse(_priceController.text.trim()),
+          category: _selectedCategory!,
+          imageUrl: _imageUrlController.text.trim().isEmpty
+              ? 'https://via.placeholder.com/300x200?text=No+Image'
+              : _imageUrlController.text.trim(),
+          description: _descriptionController.text.trim(),
+          mileage: int.parse(_mileageController.text.trim()),
+          fuelType: _selectedFuelType,
+          transmission: _selectedTransmission,
+          condition: _selectedCondition,
+          location: _locationController.text.trim(),
+          sellerName: widget.carToEdit!.sellerName,
+          sellerPhone: widget.carToEdit!.sellerPhone,
+          listedDate: widget.carToEdit!.listedDate,
+          userId: widget.carToEdit!.userId,
         );
-        Navigator.pop(context);
+
+        await _firestoreService.updateCar(widget.carToEdit!.id, updatedCar);
+
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Car listing updated successfully!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          Navigator.pop(context);
+        }
+      } else {
+        // Create new car object
+        final newCar = Car(
+          id: '', // This will be set by Firestore
+          make: _makeController.text.trim(),
+          model: _modelController.text.trim(),
+          year: int.parse(_yearController.text.trim()),
+          price: double.parse(_priceController.text.trim()),
+          category: _selectedCategory!,
+          imageUrl: _imageUrlController.text.trim().isEmpty
+              ? 'https://via.placeholder.com/300x200?text=No+Image'
+              : _imageUrlController.text.trim(),
+          description: _descriptionController.text.trim(),
+          mileage: int.parse(_mileageController.text.trim()),
+          fuelType: _selectedFuelType,
+          transmission: _selectedTransmission,
+          condition: _selectedCondition,
+          location: _locationController.text.trim(),
+          sellerName:
+              _userProfile?.displayName ??
+              user.displayName ??
+              user.email ??
+              'Anonymous',
+          sellerPhone: _userProfile?.phoneNumber ?? 'No phone number',
+          listedDate: DateTime.now(),
+          userId: user
+              .uid, // Add the user ID to associate the car with the current user
+        );
+
+        // Save to Firestore
+        await _firestoreService.addCar(newCar);
+
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Car listing added successfully!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          Navigator.pop(context);
+        }
       }
     } catch (e) {
       if (context.mounted) {
@@ -203,9 +263,9 @@ class _AddCarScreenState extends State<AddCarScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Add Car for Sale',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        title: Text(
+          _isEditing ? 'Edit Car Listing' : 'Add Car for Sale',
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
@@ -491,9 +551,9 @@ class _AddCarScreenState extends State<AddCarScreen> {
                   ),
                   child: _isLoading
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text(
-                          'Add Car Listing',
-                          style: TextStyle(
+                      : Text(
+                          _isEditing ? 'Update Car Listing' : 'Add Car Listing',
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
