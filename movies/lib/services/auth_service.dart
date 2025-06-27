@@ -47,6 +47,26 @@ class AuthService {
     }
   }
 
+  // Update user profile with display name
+  Future<void> updateUserProfile({
+    String? displayName,
+    String? photoURL,
+  }) async {
+    try {
+      final User? user = _auth.currentUser;
+      if (user != null) {
+        await user.updateDisplayName(displayName);
+        if (photoURL != null) {
+          await user.updatePhotoURL(photoURL);
+        }
+        // Reload user to get updated profile
+        await user.reload();
+      }
+    } catch (e) {
+      throw 'Failed to update user profile. Please try again.';
+    }
+  }
+
   // Sign out (includes Google sign out)
   Future<void> signOut() async {
     try {

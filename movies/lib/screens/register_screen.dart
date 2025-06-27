@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
-import 'home_screen.dart';
+import '../services/firestore_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -18,6 +18,7 @@ class _RegisterScreenState extends State<RegisterScreen>
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final AuthService _authService = AuthService();
+  final FirestoreService _firestoreService = FirestoreService();
 
   bool _isLoading = false;
   bool _obscurePassword = true;
@@ -67,19 +68,43 @@ class _RegisterScreenState extends State<RegisterScreen>
     });
 
     try {
-      await _authService.createUserWithEmailAndPassword(
+      // Create user account
+      final userCredential = await _authService.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
-      // TODO: Update user profile with name: _nameController.text.trim()
 
-      // Navigate to home screen after successful registration
-      if (mounted) {
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
-          (route) => false,
+      if (userCredential != null && userCredential.user != null) {
+        // Update Firebase Auth display name
+        await _authService.updateUserProfile(
+          displayName: _nameController.text.trim(),
         );
+
+        // Save additional profile data to Firestore
+        await _firestoreService.createUserProfile(
+          userId: userCredential.user!.uid,
+          email: _emailController.text.trim(),
+          displayName: _nameController.text.trim(),
+          phoneNumber: _phoneController.text.trim(),
+        );
+
+        // Show success message
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Registration successful! Welcome!'),
+              backgroundColor: Colors.green.shade600,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+
+        // Don't navigate manually - let AuthWrapper handle it
+        // The authentication state change will automatically trigger navigation
       }
     } catch (e) {
       if (mounted) {

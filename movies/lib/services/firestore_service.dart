@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/car.dart';
+import '../models/user_profile.dart';
 
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -11,6 +12,69 @@ class FirestoreService {
   // Cars Collection Reference
   CollectionReference<Map<String, dynamic>> get _carsCollection =>
       _firestore.collection('cars');
+
+  // Users Collection Reference
+  CollectionReference<Map<String, dynamic>> get _usersCollection =>
+      _firestore.collection('users');
+
+  // ========== USER PROFILE OPERATIONS ==========
+
+  // Create user profile
+  Future<void> createUserProfile({
+    required String userId,
+    required String email,
+    required String displayName,
+    required String phoneNumber,
+  }) async {
+    try {
+      final now = DateTime.now();
+      final userProfile = UserProfile(
+        userId: userId,
+        email: email,
+        displayName: displayName,
+        phoneNumber: phoneNumber,
+        createdAt: now,
+        updatedAt: now,
+      );
+
+      await _usersCollection.doc(userId).set(userProfile.toFirestore());
+    } catch (e) {
+      throw Exception('Failed to create user profile: $e');
+    }
+  }
+
+  // Get user profile
+  Future<UserProfile?> getUserProfile(String userId) async {
+    try {
+      final docSnapshot = await _usersCollection.doc(userId).get();
+      if (docSnapshot.exists) {
+        return UserProfile.fromFirestore(docSnapshot);
+      }
+      return null;
+    } catch (e) {
+      throw Exception('Failed to fetch user profile: $e');
+    }
+  }
+
+  // Update user profile
+  Future<void> updateUserProfile({
+    required String userId,
+    String? displayName,
+    String? phoneNumber,
+  }) async {
+    try {
+      final updateData = <String, dynamic>{
+        'updatedAt': Timestamp.fromDate(DateTime.now()),
+      };
+
+      if (displayName != null) updateData['displayName'] = displayName;
+      if (phoneNumber != null) updateData['phoneNumber'] = phoneNumber;
+
+      await _usersCollection.doc(userId).update(updateData);
+    } catch (e) {
+      throw Exception('Failed to update user profile: $e');
+    }
+  }
 
   // ========== CATEGORY OPERATIONS ==========
 
