@@ -22,7 +22,6 @@ class _AddCarScreenState extends State<AddCarScreen> {
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _mileageController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
-  final TextEditingController _sellerPhoneController = TextEditingController();
 
   String? _selectedCategory;
   String _selectedFuelType = 'Gasoline';
@@ -133,7 +132,7 @@ class _AddCarScreenState extends State<AddCarScreen> {
         condition: _selectedCondition,
         location: _locationController.text.trim(),
         sellerName: user.displayName ?? user.email ?? 'Anonymous',
-        sellerPhone: _sellerPhoneController.text.trim(),
+        sellerPhone: user.phoneNumber ?? 'No phone number',
         listedDate: DateTime.now(),
         userId: user
             .uid, // Add the user ID to associate the car with the current user
@@ -448,24 +447,6 @@ class _AddCarScreenState extends State<AddCarScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Seller Phone
-              TextFormField(
-                controller: _sellerPhoneController,
-                keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(
-                  labelText: 'Phone Number *',
-                  hintText: '+1234567890',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter your phone number';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 24),
-
               // Submit Button
               SizedBox(
                 height: 50,
@@ -503,7 +484,6 @@ class _AddCarScreenState extends State<AddCarScreen> {
     _descriptionController.dispose();
     _mileageController.dispose();
     _locationController.dispose();
-    _sellerPhoneController.dispose();
     super.dispose();
   }
 }
