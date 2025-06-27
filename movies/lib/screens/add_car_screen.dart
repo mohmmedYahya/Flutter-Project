@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/car.dart';
+import '../models/user_profile.dart';
 import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
 
@@ -30,6 +31,8 @@ class _AddCarScreenState extends State<AddCarScreen> {
 
   List<CarCategory> _categories = [];
   bool _categoriesLoading = false;
+  UserProfile? _userProfile;
+  bool _profileLoading = false;
 
   final List<String> _fuelTypes = [
     'Gasoline',
@@ -55,6 +58,7 @@ class _AddCarScreenState extends State<AddCarScreen> {
   void initState() {
     super.initState();
     _loadCategories();
+    _loadUserProfile();
   }
 
   Future<void> _loadCategories() async {
@@ -82,6 +86,31 @@ class _AddCarScreenState extends State<AddCarScreen> {
     } finally {
       setState(() {
         _categoriesLoading = false;
+      });
+    }
+  }
+
+  Future<void> _loadUserProfile() async {
+    setState(() {
+      _profileLoading = true;
+    });
+
+    try {
+      final AuthService authService = AuthService();
+      final User? user = authService.currentUser;
+
+      if (user != null) {
+        final profile = await _firestoreService.getUserProfile(user.uid);
+        setState(() {
+          _userProfile = profile;
+        });
+      }
+    } catch (e) {
+      print('Error loading user profile: $e');
+      // Continue without profile data - will fall back to Firebase Auth data
+    } finally {
+      setState(() {
+        _profileLoading = false;
       });
     }
   }
@@ -131,8 +160,12 @@ class _AddCarScreenState extends State<AddCarScreen> {
         transmission: _selectedTransmission,
         condition: _selectedCondition,
         location: _locationController.text.trim(),
-        sellerName: user.displayName ?? user.email ?? 'Anonymous',
-        sellerPhone: user.phoneNumber ?? 'No phone number',
+        sellerName:
+            _userProfile?.displayName ??
+            user.displayName ??
+            user.email ??
+            'Anonymous',
+        sellerPhone: _userProfile?.phoneNumber ?? 'No phone number',
         listedDate: DateTime.now(),
         userId: user
             .uid, // Add the user ID to associate the car with the current user
