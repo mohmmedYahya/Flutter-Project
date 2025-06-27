@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
+import '../services/firestore_service.dart';
+import '../models/user_profile.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -11,7 +13,32 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final AuthService _authService = AuthService();
+  final FirestoreService _firestoreService = FirestoreService();
   bool _isLoading = false;
+  UserProfile? _userProfile;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserProfile();
+  }
+
+  Future<void> _loadUserProfile() async {
+    final User? user = _authService.currentUser;
+    if (user != null) {
+      try {
+        final profile = await _firestoreService.getUserProfile(user.uid);
+        if (mounted) {
+          setState(() {
+            _userProfile = profile;
+          });
+        }
+      } catch (e) {
+        print('Error loading user profile: $e');
+        // Continue without Firestore data - will fall back to Firebase Auth data
+      }
+    }
+  }
 
   Future<void> _handleLogout(BuildContext context) async {
     setState(() {
@@ -114,9 +141,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             const SizedBox(height: 20),
 
-            // User Name
+            // User Name - use Firestore data if available, otherwise Firebase Auth
             Text(
-              user?.displayName ?? 'User',
+              _userProfile?.displayName ?? user?.displayName ?? 'User',
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
 
@@ -124,7 +151,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             // User Email
             Text(
-              user?.email ?? 'No email',
+              _userProfile?.email ?? user?.email ?? 'No email',
               style: TextStyle(fontSize: 16, color: Colors.grey[600]),
             ),
 
@@ -151,15 +178,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _buildInfoRow(
                       icon: Icons.person,
                       label: 'Display Name',
-                      value: user?.displayName ?? 'Not set',
+                      value:
+                          _userProfile?.displayName ??
+                          user?.displayName ??
+                          'Not set',
                     ),
 
                     const SizedBox(height: 12),
 
                     _buildInfoRow(
-                      icon: Icons.email,
-                      label: 'Email',
-                      value: user?.email ?? 'Not available',
+                      icon: Icons.phone,
+                      label: 'Phone',
+                      value: _userProfile?.phoneNumber ?? 'Not available',
                     ),
 
                     const SizedBox(height: 12),
