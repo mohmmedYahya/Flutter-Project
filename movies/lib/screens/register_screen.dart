@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
-import 'home_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -119,17 +118,12 @@ class _RegisterScreenState extends State<RegisterScreen>
             ),
           );
 
-          // Add a small delay to ensure the snackbar shows, then navigate
+          // Add a small delay to show the success message
           await Future.delayed(const Duration(milliseconds: 500));
 
-          // Navigate directly to home screen after successful registration
-          if (mounted) {
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => const HomeScreen()),
-              (route) => false,
-            );
-          }
+          // Don't navigate manually - let AuthWrapper detect auth state change
+          // and automatically navigate to MainNavigationScreen
+          // The authentication state change will trigger this automatically
         }
       } else {
         throw 'Failed to create user account. Please try again.';
