@@ -156,10 +156,7 @@ class _MyCarListingsScreenState extends State<MyCarListingsScreen> {
                   itemBuilder: (context, index) {
                     final car = userCars[index];
                     return Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 4),
                       child: Stack(
                         children: [
                           CarCard(
