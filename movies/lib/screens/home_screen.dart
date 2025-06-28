@@ -22,7 +22,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'CarMarket',
+          'Car Market',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
