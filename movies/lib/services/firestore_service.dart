@@ -312,7 +312,7 @@ class FirestoreService {
 
       final searchLower = searchQuery.toLowerCase();
       final searchUpper =
-          searchLower + '\uf8ff'; // Unicode high character for range
+          '$searchLower\uf8ff'; // Unicode high character for range
 
       // Search by make field using range query
       return _carsCollection

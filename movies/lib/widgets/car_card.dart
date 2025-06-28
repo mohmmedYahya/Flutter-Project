@@ -17,7 +17,7 @@ class CarCard extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
-        child: Container(
+        child: SizedBox(
           height: 130, // Increased height to prevent overflow
           child: Row(
             children: [

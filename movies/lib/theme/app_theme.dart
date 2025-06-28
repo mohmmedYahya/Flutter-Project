@@ -16,12 +16,10 @@ class AppTheme {
         secondaryContainer: AppColors.secondaryLight,
         surface: AppColors.backgroundDefault,
         onSurface: AppColors.textPrimary,
-        background: AppColors.backgroundPaper,
-        onBackground: AppColors.textPrimary,
         error: AppColors.errorMain,
         onError: Colors.white,
         outline: AppColors.borderCard,
-        surfaceVariant: AppColors.grey100,
+        surfaceContainerHighest: AppColors.grey100,
         onSurfaceVariant: AppColors.textSecondary,
       ),
 
@@ -250,20 +248,20 @@ class AppTheme {
 
       // Switch Theme
       switchTheme: SwitchThemeData(
-        thumbColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.disabled)) {
+        thumbColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.disabled)) {
             return AppColors.switchDisabledThumb;
           }
-          if (states.contains(MaterialState.selected)) {
+          if (states.contains(WidgetState.selected)) {
             return AppColors.primaryMain;
           }
           return AppColors.grey400;
         }),
-        trackColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.disabled)) {
+        trackColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.disabled)) {
             return AppColors.switchDisabledTrack;
           }
-          if (states.contains(MaterialState.selected)) {
+          if (states.contains(WidgetState.selected)) {
             return AppColors.primaryMain.withOpacity(0.5);
           }
           return AppColors.grey300;
@@ -306,12 +304,10 @@ class AppTheme {
         secondaryContainer: AppColors.secondaryDark,
         surface: AppColors.grey800,
         onSurface: AppColors.grey100,
-        background: AppColors.grey900,
-        onBackground: AppColors.grey100,
         error: AppColors.errorMain,
         onError: Colors.white,
         outline: AppColors.grey600,
-        surfaceVariant: AppColors.grey700,
+        surfaceContainerHighest: AppColors.grey700,
         onSurfaceVariant: AppColors.grey400,
       ),
     );
