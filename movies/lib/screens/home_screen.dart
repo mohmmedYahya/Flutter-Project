@@ -5,7 +5,6 @@ import '../widgets/category_card.dart';
 import '../widgets/car_card.dart';
 import '../screens/category_screen.dart';
 import '../screens/car_detail_screen.dart';
-import '../screens/add_car_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -52,7 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
             // Categories Grid
             SizedBox(
-              height: 150,
+              height: 120,
               child: StreamBuilder<List<CarCategory>>(
                 stream: _firestoreService.getCategoriesStream(),
                 builder: (context, snapshot) {
@@ -77,7 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     itemBuilder: (context, index) {
                       final category = categories[index];
                       return SizedBox(
-                        width: 120,
+                        width: 100,
                         child: CategoryCard(
                           category: category,
                           onTap: () {
