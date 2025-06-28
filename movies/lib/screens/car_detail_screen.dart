@@ -205,6 +205,7 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
 
                   // Location
                   Card(
+                    color: Colors.white,
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Row(
@@ -233,6 +234,7 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
                   // Seller Information (only show to non-owners)
                   if (!_isCarOwner) ...[
                     Card(
+                      color: Colors.white,
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Column(
@@ -299,6 +301,7 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
                   ] else ...[
                     // Show message for car owners
                     Card(
+                      color: Colors.white,
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Row(

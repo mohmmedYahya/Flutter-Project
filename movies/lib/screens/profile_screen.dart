@@ -160,6 +160,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             // User Information Card
             Card(
               elevation: 4,
+              color: Colors.white,
               child: Padding(
                 padding: const EdgeInsets.all(20),
                 child: Column(
