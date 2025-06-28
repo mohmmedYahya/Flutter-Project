@@ -71,6 +71,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           title: const Text('Sign Out'),
           content: const Text('Are you sure you want to sign out?'),
           actions: [
@@ -97,158 +100,206 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final User? user = _authService.currentUser;
 
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
         title: const Text(
           'Profile',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         automaticallyImplyLeading: false,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const SizedBox(height: 20),
-
-            // Profile Avatar
+            // Profile Header Section
             Container(
-              width: 120,
-              height: 120,
+              width: double.infinity,
               decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Theme.of(context).primaryColor.withOpacity(0.1),
-                border: Border.all(
-                  color: Theme.of(context).primaryColor,
-                  width: 3,
-                ),
-              ),
-              child: user?.photoURL != null
-                  ? ClipOval(
-                      child: Image.network(
-                        user!.photoURL!,
-                        width: 120,
-                        height: 120,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) =>
-                            _buildAvatarInitials(user),
-                      ),
-                    )
-                  : _buildAvatarInitials(user),
-            ),
-
-            const SizedBox(height: 20),
-
-            // User Name - use Firestore data if available, otherwise Firebase Auth
-            Text(
-              _userProfile?.displayName ?? user?.displayName ?? 'User',
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-
-            const SizedBox(height: 8),
-
-            // User Email
-            Text(
-              _userProfile?.email ?? user?.email ?? 'No email',
-              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-            ),
-
-            const SizedBox(height: 20),
-
-            // User Information Card
-            Card(
-              elevation: 4,
-              color: Colors.white,
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Account Information',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).primaryColor,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    _buildInfoRow(
-                      icon: Icons.person,
-                      label: 'Display Name',
-                      value:
-                          _userProfile?.displayName ??
-                          user?.displayName ??
-                          'Not set',
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    _buildInfoRow(
-                      icon: Icons.phone,
-                      label: 'Phone',
-                      value: _userProfile?.phoneNumber ?? 'Not available',
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    _buildInfoRow(
-                      icon: Icons.calendar_today,
-                      label: 'Member Since',
-                      value: user?.metadata.creationTime != null
-                          ? _formatDate(user!.metadata.creationTime!)
-                          : 'Unknown',
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    _buildInfoRow(
-                      icon: Icons.access_time,
-                      label: 'Last Sign In',
-                      value: user?.metadata.lastSignInTime != null
-                          ? _formatDate(user!.metadata.lastSignInTime!)
-                          : 'Unknown',
-                    ),
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Theme.of(context).primaryColor.withOpacity(0.1),
+                    Colors.transparent,
                   ],
                 ),
               ),
-            ),
+              child: Column(
+                children: [
+                  const SizedBox(height: 20),
 
-            const SizedBox(height: 20),
-
-            // Logout Button
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton.icon(
-                onPressed: _isLoading
-                    ? null
-                    : () => _showLogoutConfirmation(context),
-                icon: _isLoading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
+                  // Profile Avatar
+                  Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Theme.of(context).primaryColor.withOpacity(0.8),
+                          Theme.of(context).primaryColor,
+                        ],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Theme.of(
+                            context,
+                          ).primaryColor.withOpacity(0.3),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
                         ),
-                      )
-                    : const Icon(Icons.logout),
-                label: Text(_isLoading ? 'Signing Out...' : 'Sign Out'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                      ],
+                    ),
+                    child: user?.photoURL != null
+                        ? ClipOval(
+                            child: Image.network(
+                              user!.photoURL!,
+                              width: 120,
+                              height: 120,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  _buildAvatarInitials(user),
+                            ),
+                          )
+                        : _buildAvatarInitials(user),
                   ),
-                ),
+
+                  const SizedBox(height: 10),
+
+                  // User Name
+                  Text(
+                    _userProfile?.displayName ?? user?.displayName ?? 'User',
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+
+                  const SizedBox(height: 4),
+
+                  // User Email
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Text(
+                      _userProfile?.email ?? user?.email ?? 'No email',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey[700],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 15),
+                ],
               ),
             ),
 
-            const SizedBox(height: 20),
+            // Account Information Section
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Account Information',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Information Cards
+                  _buildInfoCard(
+                    icon: Icons.phone_outlined,
+                    title: 'Phone Number',
+                    value: _userProfile?.phoneNumber ?? 'Not provided',
+                    color: Colors.green,
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  _buildInfoCard(
+                    icon: Icons.calendar_today_outlined,
+                    title: 'Member Since',
+                    value: user?.metadata.creationTime != null
+                        ? _formatDate(user!.metadata.creationTime!)
+                        : 'Unknown',
+                    color: Colors.blue,
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  _buildInfoCard(
+                    icon: Icons.access_time_outlined,
+                    title: 'Last Sign In',
+                    value: user?.metadata.lastSignInTime != null
+                        ? _formatDate(user!.metadata.lastSignInTime!)
+                        : 'Unknown',
+                    color: Colors.orange,
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  // Sign Out Button
+                  Container(
+                    width: double.infinity,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.red.withOpacity(0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: ElevatedButton.icon(
+                      onPressed: _isLoading
+                          ? null
+                          : () => _showLogoutConfirmation(context),
+                      icon: _isLoading
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Icon(Icons.logout_rounded, size: 22),
+                      label: Text(
+                        _isLoading ? 'Signing Out...' : 'Sign Out',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        elevation: 0,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 32),
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -266,51 +317,73 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Center(
       child: Text(
         initials,
-        style: TextStyle(
-          fontSize: 48,
+        style: const TextStyle(
+          fontSize: 56,
           fontWeight: FontWeight.bold,
-          color: Theme.of(context).primaryColor,
+          color: Colors.white,
         ),
       ),
     );
   }
 
-  Widget _buildInfoRow({
+  Widget _buildInfoCard({
     required IconData icon,
-    required String label,
+    required String title,
     required String value,
-    Color? valueColor,
+    required Color color,
   }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, size: 20, color: Colors.grey[600]),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[600],
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: valueColor ?? Colors.black87,
-                ),
-              ),
-            ],
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
-        ),
-      ],
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: color, size: 24),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
