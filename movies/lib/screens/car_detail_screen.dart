@@ -50,7 +50,7 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('${widget.car.make} ${widget.car.model}'),
+        title: Text('Car Details'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: SingleChildScrollView(
