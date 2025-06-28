@@ -184,60 +184,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               },
             ),
-
-            // Quick Stats
-            StreamBuilder<int>(
-              stream: _firestoreService.getCarsStream().map(
-                (cars) => cars.length,
-              ),
-              builder: (context, carsSnapshot) {
-                return StreamBuilder<int>(
-                  stream: _firestoreService.getCategoriesStream().map(
-                    (categories) => categories.length,
-                  ),
-                  builder: (context, categoriesSnapshot) {
-                    final carsCount = carsSnapshot.data ?? 0;
-                    final categoriesCount = categoriesSnapshot.data ?? 0;
-
-                    return Container(
-                      margin: const EdgeInsets.all(16),
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).primaryColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          _buildStatColumn('$carsCount', 'Cars Available'),
-                          _buildStatColumn('$categoriesCount', 'Categories'),
-                          _buildStatColumn('100%', 'Verified Sellers'),
-                        ],
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildStatColumn(String number, String label) {
-    return Column(
-      children: [
-        Text(
-          number,
-          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-        ),
-        Text(
-          label,
-          style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-          textAlign: TextAlign.center,
-        ),
-      ],
     );
   }
 
