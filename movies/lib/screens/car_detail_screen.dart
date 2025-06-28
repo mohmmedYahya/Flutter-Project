@@ -46,37 +46,6 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
     return currentUser != null && currentUser.uid == widget.car.userId;
   }
 
-  void _showContactInfo(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Contact Seller'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Name: ${widget.car.sellerName}'),
-              const SizedBox(height: 8),
-              Text('Phone: ${widget.car.sellerPhone}'),
-              const SizedBox(height: 16),
-              const Text(
-                'Please call or text the seller directly to inquire about this vehicle.',
-                style: TextStyle(fontSize: 14, color: Colors.grey),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Close'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -280,26 +249,6 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
                       ),
                     ),
                     const SizedBox(height: 24),
-
-                    // Contact Button (only show to non-owners)
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: () => _showContactInfo(context),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Theme.of(context).primaryColor,
-                          foregroundColor: Colors.white,
-                        ),
-                        child: const Text(
-                          'Contact Seller',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
                   ] else ...[
                     // Show message for car owners
                     Card(
